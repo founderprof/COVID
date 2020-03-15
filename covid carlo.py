@@ -45,7 +45,7 @@ teamSize = 10         ## Number of people on the whole team
 p0 = 0.005            ## Probability of infection from the population at large
 p1 = 0.50             ## Probability of infection from the office, from an infected co-worker
 
-incubationTime = 5.1  ## Mean num of days before symptoms appear
+incubationTime = 5.2  ## Mean num of days before symptoms appear
 incubationSigma = 4.0 ## Sigma for IT
                       ## the mean is from published studies of COVID 19.  Follows gamma (erlang distribution)
 
@@ -53,10 +53,10 @@ pQ = 0.98             ## Probability of quarantine after first symptoms (exponen
                       ## Estimate
 
 serialInterval = 4.0  ## Mean num of days between infection and infecting another 
-serialSigma = 3.00    ## Standard deviation for serialLatency
+serialSigma = 3.20    ## Standard deviation for serialLatency
                       ## Both values are latest estimates from published studies.  Gamma distribution
 
-alternatingPeriod = 3 ## number of days before switching teams
+alternatingPeriod = 2 ## number of days before switching teams
 
 mode = 3              ## 1 = single team (everyone)
                       ## 2 = two fixed teams, periodic switching days
