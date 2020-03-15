@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import random
+import numpy 
 
 ## Some useful constants
 Healthy = 0
@@ -26,28 +27,36 @@ def CountHealthy(team):
          count += 1
    return count
 
+def ListNonQuarantined(team):
+   workTeam = []
+   for i in range(0, len(team)):
+      if (team[i] != Quarantined):
+         workTeam.append(i)
+   return workTeam
+      
+
 # Python program to calculate rates of infection
 
 
-iterations = 10       ## Number of iterations in the simulation
+iterations = 500      ## Number of iterations in the simulation
 days = 100            ## Number of days to simulate
-teamSize = 30         ## Number of people on the whole team
+teamSize = 10         ## Number of people on the whole team
 
-p0 = 0.001            ## Probability of infection from the population at large
-p1 = 0.40             ## Probability of infection from the office, from an infected co-worker
+p0 = 0.005            ## Probability of infection from the population at large
+p1 = 0.50             ## Probability of infection from the office, from an infected co-worker
 
 incubationTime = 5.1  ## Mean num of days before symptoms appear
-incubationSigma = 4.0 ## Sigma for IT, assuming normal distribution which it probably isn't
-                      ## the mean is from published studies of COVID 19, sigma is estimate 
+incubationSigma = 4.0 ## Sigma for IT
+                      ## the mean is from published studies of COVID 19.  Follows gamma (erlang distribution)
 
-pQ = 0.999            ## Probability of quarantine after first symptoms (exponential distribution)
+pQ = 0.98             ## Probability of quarantine after first symptoms (exponential distribution)
                       ## Estimate
 
 serialInterval = 4.0  ## Mean num of days between infection and infecting another 
-serialSigma = 4.75    ## Standard deviation for serialLatency
-                      ## Both values are latest estimates from published studies, assuming normal distribution
+serialSigma = 3.00    ## Standard deviation for serialLatency
+                      ## Both values are latest estimates from published studies.  Gamma distribution
 
-alternatingPeriod = 2 ## number of days before switching teams
+alternatingPeriod = 3 ## number of days before switching teams
 
 mode = 3              ## 1 = single team (everyone)
                       ## 2 = two fixed teams, periodic switching days
@@ -58,7 +67,16 @@ mode = 3              ## 1 = single team (everyone)
 # Seed the random number generate.  If omitted, the default is a seed with millisecond timer
 random.seed(1023)
 
-print("Running Covid Carlo.... with", iterations, "iterations on a team of", teamSize)
+# Calculate distribution parameters
+# Both serial interval and incubation interval are Gamma (Erlang) distributed
+thetaSerial = (serialSigma**2) / serialInterval 
+alphaSerial = serialInterval/thetaSerial
+betaSerial  = 1 / thetaSerial
+thetaAsym = (incubationSigma**2) / incubationTime
+alphaAsym = incubationTime / thetaAsym
+betaAsym = 1/thetaAsym 
+
+print("Running Covid Carlo.... with", iterations, "iterations on a team of", teamSize, "working for", days, "days.")
 
 for m in range(1, 5):
    mode = m;
@@ -105,8 +123,8 @@ for m in range(1, 5):
             # Random teams, random days
             elif (mode == 4):
                atOffice = [False] * teamSize
-               teamList = random.sample(range(teamSize), int(len(team)/2))
-               ## This is wrong because quarantined are still included
+               nonQuarantined = ListNonQuarantined(team)
+               teamList = random.sample(nonQuarantined, int(len(nonQuarantined)/2))
                for i in teamList:
                   atOffice[i] = True
 
@@ -123,15 +141,14 @@ for m in range(1, 5):
                if (team[j] == Healthy):
                   if (random.random() < p0):  ## New external infection
                      team[j] = Infected
-                     infectedInterval[j] = int(random.gauss(serialInterval, serialSigma))
-                     asymptomInterval[j] = int(random.gauss(incubationTime, incubationSigma))
+                     infectedInterval[j] = int(round(numpy.random.gamma(alphaSerial, 1/betaSerial)))
+                     asymptomInterval[j] = int(round(numpy.random.gamma(alphaAsym, 1/betaAsym)))
                   elif (atOffice[j]):         ## Infection at work!
                      for k in range (0, numInfected):
                         if (random.random() < p1):
                            team[j] = Infected
-                           infectedInterval[j] = int(random.gauss(serialInterval, serialSigma))
-                           asymptomInterval[j] = int(random.gauss(incubationTime, incubationSigma))
-
+                           infectedInterval[j] = int(round(numpy.random.gamma(alphaSerial, 1/betaSerial)))
+                           asymptomInterval[j] = int(round(numpy.random.gamma(alphaAsym, 1/betaAsym)))
          # Transition from Infected to Infectious
          for j in range(0, len(team)):
             if (team[j] == Infected and infectedInterval[j] == 0):
