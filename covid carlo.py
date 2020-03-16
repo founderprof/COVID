@@ -79,7 +79,7 @@ betaAsym = 1/thetaAsym
 
 print("Days, Mode, Period, TeamSize, Work, Healthy")
 for mode in range(1, 5):
-   for alternatingPeriod in range (1, 10):
+   for alternatingPeriod in range (1, 11):
       for teamSize in range (10, 110, 10):
 
          # Aggregate Statistics
@@ -108,7 +108,7 @@ for mode in range(1, 5):
 
                # Determine which people are at work
                # Time to switch teams!
-               if (d % alternatingPeriod):  
+               if (d % alternatingPeriod == 0):  
                   # Fixed teams, periodic days
                   if (mode == 2):
                      for j in range (0, len(team)):
@@ -162,6 +162,10 @@ for mode in range(1, 5):
                       (asymptomInterval[j]==0) and
                       (random.random() > (1.0-pQ))):
                       team[j] = Quarantined
+
+               #print(team)
+               #print(atOffice)
+               #print("PersonDays: ", personDays)
 
                for j in range(0, len(team)):
                   if ((team[j] == Healthy or team[j] == Infected) and atOffice[j]):
